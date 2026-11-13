@@ -44,8 +44,9 @@ class R2TvaDeductible extends RegleControle
             if ($doublons && $ecriture['journal'] === $journalAchats && $ecriture['tiers_id'] !== null) {
                 $cle = $ecriture['tiers_id'] . '|' . $ecriture['numero_piece'] . '|' . round($totalDebit, 2);
                 if (isset($vues[$cle])) {
+                    // Montant à risque : la TVA déduite en double (à défaut, le montant de l'écriture).
                     $resultats[] = new ResultatAnomalie(
-                        $totalDebit,
+                        $tvaDed > 0 ? $tvaDed : $totalDebit,
                         'ecriture',
                         $ecritureId,
                         sprintf(
