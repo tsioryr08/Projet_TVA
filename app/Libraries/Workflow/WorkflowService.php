@@ -116,9 +116,9 @@ class WorkflowService
     /** Nombre d'anomalies bloquantes encore ouvertes pour la société et la période de la déclaration. */
     public function anomaliesBloquantes(array $declaration): int
     {
-        return Database::connect()->table('anomalies')->where([
-            'societe_id' => $declaration['societe_id'], 'periode_id' => $declaration['periode_id'],
-            'severite' => 'bloquante', 'statut' => 'ouverte',
+        return Database::connect()->table('anomalies a')->join('regles_controle r', 'r.id = a.regle_id')->where([
+            'a.societe_id' => $declaration['societe_id'], 'a.periode_id' => $declaration['periode_id'],
+            'a.severite' => 'bloquante', 'a.statut' => 'ouverte', 'r.active' => 1,
         ])->countAllResults();
     }
 

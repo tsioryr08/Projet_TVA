@@ -17,12 +17,13 @@ class DashboardDonnees extends BaseCommand
     protected $group       = 'Fiscal';
     protected $name        = 'dashboard:donnees';
     protected $description = 'Affiche les données du dashboard de risque (ajouter json pour la sortie brute).';
-    protected $usage       = 'dashboard:donnees [annee] [mois] [json]';
+    protected $usage       = 'dashboard:donnees [annee] [mois] [json] [--societe id]';
 
     public function run(array $params)
     {
-        $societe = (new SocieteModel())->first();
-        $periode = (new PeriodeFiscaleModel())->where(['annee' => (int) ($params[0] ?? 2026), 'mois' => (int) ($params[1] ?? 10)])->first();
+        $idSociete = CLI::getOption('societe');
+        $societe   = $idSociete ? (new SocieteModel())->find((int) $idSociete) : (new SocieteModel())->first();
+        $periode   = $societe === null ? null : (new PeriodeFiscaleModel())->where(['societe_id' => $societe['id']] + ['annee' => (int) ($params[0] ?? 2026), 'mois' => (int) ($params[1] ?? 10)])->first();
         if ($societe === null || $periode === null) {
             CLI::error('Société ou période introuvable.');
 

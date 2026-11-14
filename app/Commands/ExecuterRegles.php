@@ -18,15 +18,16 @@ class ExecuterRegles extends BaseCommand
     protected $group       = 'Fiscal';
     protected $name        = 'regles:executer';
     protected $description = 'Exécute les règles de contrôle (R1 à R6) sur une période et affiche les anomalies.';
-    protected $usage       = 'regles:executer [annee] [mois]';
+    protected $usage       = 'regles:executer [annee] [mois] [--societe id]';
 
     public function run(array $params)
     {
         $annee = (int) ($params[0] ?? 2026);
         $mois  = (int) ($params[1] ?? 10);
 
-        $societe = (new SocieteModel())->first();
-        $periode = (new PeriodeFiscaleModel())->where(['annee' => $annee, 'mois' => $mois])->first();
+        $idSociete = CLI::getOption('societe');
+        $societe   = $idSociete ? (new SocieteModel())->find((int) $idSociete) : (new SocieteModel())->first();
+        $periode   = $societe === null ? null : (new PeriodeFiscaleModel())->where(['societe_id' => $societe['id']] + ['annee' => $annee, 'mois' => $mois])->first();
 
         if ($societe === null || $periode === null) {
             CLI::error('Société ou période introuvable : lancez d\'abord php spark db:seed DatabaseSeeder.');

@@ -18,15 +18,16 @@ class CalculerScore extends BaseCommand
     protected $group       = 'Fiscal';
     protected $name        = 'score:calculer';
     protected $description = 'Calcule le score de risque d\'une période et affiche son explication par règle.';
-    protected $usage       = 'score:calculer [annee] [mois]';
+    protected $usage       = 'score:calculer [annee] [mois] [--societe id]';
 
     public function run(array $params)
     {
         $annee = (int) ($params[0] ?? 2026);
         $mois  = (int) ($params[1] ?? 10);
 
-        $societe = (new SocieteModel())->first();
-        $periode = (new PeriodeFiscaleModel())->where(['annee' => $annee, 'mois' => $mois])->first();
+        $idSociete = CLI::getOption('societe');
+        $societe   = $idSociete ? (new SocieteModel())->find((int) $idSociete) : (new SocieteModel())->first();
+        $periode   = $societe === null ? null : (new PeriodeFiscaleModel())->where(['societe_id' => $societe['id']] + ['annee' => $annee, 'mois' => $mois])->first();
 
         if ($societe === null || $periode === null) {
             CLI::error('Société ou période introuvable : lancez d\'abord php spark db:seed DatabaseSeeder.');

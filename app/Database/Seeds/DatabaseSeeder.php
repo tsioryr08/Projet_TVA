@@ -21,5 +21,6 @@ class DatabaseSeeder extends Seeder
         $this->call('BaremesIrsaSeeder');
         $this->call('ReglesControleSeeder');
         $this->call('DemoDataSeeder');
+        $this->call('SocietePropreSeeder');
     }
 }

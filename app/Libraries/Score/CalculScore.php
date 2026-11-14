@@ -25,7 +25,7 @@ class CalculScore
         $anomalies = $db->table('anomalies a')
             ->select('a.id, a.severite, a.statut, a.montant_concerne, r.code AS regle_code, r.intitule, r.poids')
             ->join('regles_controle r', 'r.id = a.regle_id')
-            ->where(['a.societe_id' => $societeId, 'a.periode_id' => $periodeId])
+            ->where(['a.societe_id' => $societeId, 'a.periode_id' => $periodeId, 'r.active' => 1])
             ->orderBy('r.code')->orderBy('a.id')
             ->get()->getResultArray();
 

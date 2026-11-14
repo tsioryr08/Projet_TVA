@@ -34,7 +34,7 @@ class DashboardService
         $toutes = $db->table('anomalies a')
             ->select('a.id, a.periode_id, a.severite, a.statut, a.montant_concerne, a.message, r.code AS regle_code')
             ->join('regles_controle r', 'r.id = a.regle_id')
-            ->where('a.societe_id', $societeId)->get()->getResultArray();
+            ->where(['a.societe_id' => $societeId, 'r.active' => 1])->get()->getResultArray();
         $courantes = array_values(array_filter($toutes, fn ($a) => (int) $a['periode_id'] === $periodeId));
 
         // ---- Chiffres clés ---------------------------------------------------------------------
