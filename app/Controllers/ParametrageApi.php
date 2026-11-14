@@ -13,8 +13,8 @@ use CodeIgniter\HTTP\ResponseInterface;
  *   POST /api/regles/{id}/appliquer        applique une modification (motif obligatoire)
  *
  * Corps JSON : {"modifs": {"poids": 3, "active": true, "parametres": {"tolerance_absolue": 200}},
- *               "societe_id": 1, "periode_id": 3, "motif": "...", "utilisateur_id": 2}
- * À placer derrière l'authentification : utilisateur_id devra venir de la session, pas du corps de la requête.
+ *               "societe_id": 1, "periode_id": 3, "motif": "..."}
+ * L'utilisateur est celui de la session (route protégée par AuthFilter). Les POST exigent le jeton CSRF (en-tête X-CSRF-TOKEN).
  */
 class ParametrageApi extends BaseController
 {
@@ -35,7 +35,7 @@ class ParametrageApi extends BaseController
         $c = $this->request->getJSON(true) ?? [];
 
         return $this->reponse(fn () => (new ParametrageRegles())->appliquer(
-            $regleId, (array) ($c['modifs'] ?? []), (string) ($c['motif'] ?? ''), (int) ($c['utilisateur_id'] ?? 0), (int) ($c['societe_id'] ?? 0), (int) ($c['periode_id'] ?? 0)
+            $regleId, (array) ($c['modifs'] ?? []), (string) ($c['motif'] ?? ''), (int) session('utilisateur_id'), (int) ($c['societe_id'] ?? 0), (int) ($c['periode_id'] ?? 0)
         ));
     }
 

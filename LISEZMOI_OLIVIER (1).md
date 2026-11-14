@@ -9,8 +9,9 @@ Ce document est à lire en premier : il dit ce qui est fait, comment le faire to
 
 ## 1. En une minute
 
-- **Le moteur est terminé et testé** (partie de Tsiory) : base de données, 6 règles de contrôle, score de risque expliqué, workflow de validation, journal d'audit, données du dashboard, règles paramétrables, deux sociétés de démonstration.
-- **Il ne reste presque que l'interface** (ta partie) : connexion, écrans, graphiques. Tout ce dont les écrans ont besoin existe déjà sous forme de **services PHP** et d'**URL JSON** : un écran revient surtout à de l'affichage.
+- **Le moteur est terminé et testé** : base de données, 6 règles de contrôle, score de risque expliqué, workflow de validation, journal d'audit, traitement des anomalies, règles paramétrables, deux sociétés de démonstration.
+- **L'interface web existe aussi** (lot « étape 9 ») : connexion avec rôles, tableau de bord avec graphiques, anomalies (liste, détail, preuves, traitement), déclarations avec workflow, paramétrage des règles, journal d'audit. Toutes les pages et les URL JSON sont protégées par la connexion.
+- **Il reste à toi** : la vérification visuelle et la finition de l'interface, les écrans de saisie des bordereaux et de l'historique des contrôles, le diagramme du workflow, ta partie du rapport, et les bonus (voir section 7).
 - Rien n'est à recalculer dans l'interface : le score, les anomalies, les droits et les refus sont décidés par les services.
 
 ---
@@ -19,10 +20,10 @@ Ce document est à lire en premier : il dit ce qui est fait, comment le faire to
 
 Prérequis : PHP 8.2 ou plus (CodeIgniter 4.7), MySQL ou MariaDB.
 
-1. Créer une base (par exemple `impots_fiscale`, en `utf8mb4`) et renseigner le `.env` :
+1. Créer une base (par exemple `fiscalia`, en `utf8mb4`) et renseigner le `.env` :
    ```
    database.default.hostname = 127.0.0.1
-   database.default.database = impots_fiscale
+   database.default.database = fiscalia
    database.default.username = root
    database.default.password =
    database.default.DBDriver = MySQLi
@@ -34,13 +35,7 @@ Prérequis : PHP 8.2 ou plus (CodeIgniter 4.7), MySQL ou MariaDB.
    php spark db:seed DatabaseSeeder
    ```
    Lancer `db:seed` **une seule fois** par base : les seeders ne vérifient pas les doublons. En cas de doute, supprimer la base et la recréer.
-3. Ajouter les routes dans `app/Config/Routes.php` (après la route `/`) :
-   ```php
-   $routes->get('api/dashboard/(:num)/(:num)', 'DashboardApi::donnees/$1/$2');
-   $routes->get('api/regles', 'ParametrageApi::lister');
-   $routes->post('api/regles/(:num)/apercu', 'ParametrageApi::apercu/$1');
-   $routes->post('api/regles/(:num)/appliquer', 'ParametrageApi::appliquer/$1');
-   ```
+3. Copier le fichier `app/Config/Routes.php` fourni dans le lot de l'étape 9 : il **remplace** l'ancien fichier de routes (connexion, pages, API JSON et leur protection). Ne pas ajouter de routes à la main dans l'ancien fichier.
 4. Vérifier que tout marche :
    ```
    php spark demo:reinitialiser
@@ -49,7 +44,7 @@ Prérequis : PHP 8.2 ou plus (CodeIgniter 4.7), MySQL ou MariaDB.
 
    | Id | Société | Anomalies | Score |
    |---|---|---|---|
-   | 1 | Société Démo impots_fiscale SARL (à risque) | 8, dont 2 bloquantes | 85 / 100, critique |
+   | 1 | Société Démo Fiscalia SARL (à risque) | 8, dont 2 bloquantes | 85 / 100, critique |
    | 2 | Société Modèle Claritas SA (propre) | 0 | 0 / 100, faible |
 
 Si les chiffres sont différents, ne pas continuer : recréer la base et redemander à Tsiory.
@@ -76,6 +71,8 @@ Si les chiffres sont différents, ne pas continuer : recréer la base et redeman
 | `php spark regles:parametrer R2 poids=4 --apercu` | Simule la modification d'une règle sans rien enregistrer |
 | `php spark regles:parametrer R2 poids=4 --motif "..."` | Applique la modification |
 | `php spark audit:verifier` | Vérifie que le journal d'audit n'a pas été modifié |
+| `php spark anomalies:liste 2026 10` | Liste les anomalies avec leur id (filtres `--statut`, `--regle`, `--severite`, `--societe`) |
+| `php spark anomalies:traiter <id> justifier --commentaire "..."` | Justifie, corrige, ignore ou rouvre une anomalie |
 
 `workflow:demo` modifie les anomalies et crée une déclaration : relancer `demo:reinitialiser` ensuite.
 
@@ -92,7 +89,11 @@ app/
     Workflow/                         WorkflowService, DeclarationService, AuditService, WorkflowException
     Dashboard/DashboardService.php    données du dashboard
     Parametrage/                      ParametrageRegles, ParametrageException
-  Controllers/                        DashboardApi, ParametrageApi (les seuls contrôleurs existants)
+    Anomalies/                        AnomalieService, AnomalieException (liste, détail, traitement)
+  Controllers/                        Auth, Tableau, Anomalies, Declarations, Regles, Audit (interface) ; DashboardApi, ParametrageApi, AnomaliesApi (JSON)
+  Filters/AuthFilter.php              protection des pages et de l'API
+  Helpers/ui_helper.php               montants, dates, pastilles
+  Views/                              layout, connexion, tableau et un dossier par écran
   Commands/                           les commandes du tableau ci-dessus
   Models/                             un modèle par table (23)
   Database/Migrations/                23 migrations
@@ -180,8 +181,20 @@ $p->appliquer($regleId, ['poids' => 4], 'Risque accru', $utilisateurId, $societe
 Champs modifiables : `poids` (0 à 10), `gravite` (info, moyenne, elevee, bloquante), `active` (vrai ou faux), et les seuils numériques ou booléens de `parametres` (par exemple `['parametres' => ['tolerance_absolue' => 200]]`). Le motif est obligatoire ; seuls `responsable_fiscal` et `admin` peuvent modifier ; désactiver ou déclasser une règle bloquante est réservé à `admin`. Les refus lèvent `ParametrageException` (message à afficher).
 
 En JSON : `GET /api/regles`, `POST /api/regles/{id}/apercu`, `POST /api/regles/{id}/appliquer`, avec le corps
-`{"modifs": {...}, "societe_id": 1, "periode_id": 3, "motif": "...", "utilisateur_id": 2}`. Erreur de validation : code 422 avec `{"erreur": "..."}`.
+`{"modifs": {...}, "societe_id": 1, "periode_id": 3, "motif": "..."}`. Erreur de validation : code 422 avec `{"erreur": "..."}`.
 L'aperçu renvoie le score avant et après : il sert à un curseur qui met à jour la jauge en direct.
+
+### Anomalies (liste, détail, traitement)
+```php
+$s = new \App\Libraries\Anomalies\AnomalieService();
+$s->lister($societeId, $periodeId, ['regle' => 'R2', 'severite' => 'bloquante', 'statut' => 'ouverte']);
+$s->detail($anomalieId);                     // anomalie, règle et source légale, preuves, historique des traitements
+$s->actionsPossibles($anomalieId, $userId);  // boutons à afficher ou griser, avec le motif du refus
+$s->traiter($anomalieId, 'justifier', $userId, 'Avoir émis en novembre');   // AnomalieException si refusé
+```
+Actions : `justifier`, `corriger`, `ignorer`, `rouvrir`. Une anomalie bloquante n'est justifiable que par `responsable_fiscal` ou `admin` ; « corriger » est refusé si les données n'ont pas réellement été corrigées. Chaque action recalcule le score et renvoie score avant et après, bloquantes restantes et `validation_bloquee`.
+
+L'utilisateur est celui de la session et les POST exigent l'en-tête `X-CSRF-TOKEN` (valeur de `csrf_hash()`). En JSON : `GET /api/anomalies/{societe}/{periode}?regle=&severite=&statut=`, `GET /api/anomalies/{id}`, `GET /api/anomalies/{id}/actions`, `POST /api/anomalies/{id}/traiter` avec `{"action": "...", "commentaire": "..."}`. Erreur : 422 (refus) ou 404 (introuvable).
 
 ### Journal d'audit
 ```php
@@ -212,16 +225,14 @@ Les modèles CI4 existent pour chaque table (`app/Models/`), par exemple `Anomal
 
 ## 7. Ce qu'il reste à faire (ta partie), dans l'ordre conseillé
 
-1. **Installer et vérifier** (section 2) et relire une fois le moteur : lancer les commandes, regarder les anomalies de la démo. Faire le test croisé de R3, R4 et R5 en modifiant des données pour voir si elles se déclenchent comme prévu.
-2. **Authentification et rôles** : connexion avec la table `utilisateurs` (`password_verify`), session contenant l'id et le rôle, filtre de protection des pages et des URL JSON. **L'identifiant utilisateur doit venir de la session, jamais du navigateur** : aujourd'hui les URL JSON de paramétrage le lisent dans le corps de la requête, uniquement parce que la connexion n'existe pas encore.
-3. **Anomalies** : liste (filtres par règle, gravité, statut), détail avec dossier de preuve (`anomalie_preuves`) et message d'action corrective.
-4. **Justification d'une anomalie** : passer une anomalie en `justifiee` ou `corrigee` avec un commentaire, en enregistrant `traitee_par` et une ligne dans le journal d'audit. **Il n'existe pas encore de service pour cela** : le faire dans un petit `AnomalieService` (ou demander à Tsiory de le générer) plutôt que de mettre des `UPDATE` dans le contrôleur. Après chaque traitement, appeler `RuleEngine::executer` puis `CalculScore::calculer` pour que le score se mette à jour.
-5. **Déclarations et validation** : liste, détail avec lignes, boutons déduits de `actionsPossibles`, saisie du commentaire et de la référence de virement, historique des validations. Afficher clairement le blocage et son motif.
-6. **Dashboard** avec Chart.js (voir section 5) : jauge, évolution du score, anomalies par règle et par gravité, heatmap, plus grosses anomalies, échéances.
-7. **Écran de paramétrage des règles** : liste, curseurs de poids, activation, tolérances, champ motif, aperçu en direct.
-8. **Saisie des bordereaux** (formulaire avec le PDF joint, rempli dans `documents` et `donnees_extraites`) et de l'historique des contrôles fiscaux. L'extraction automatique des PDF n'est pas prévue pour cette version : le dire dans le rapport comme un choix assumé.
-9. **Rapport** : diagramme du workflow et description du dashboard (Tsiory rédige le schéma de données, le catalogue de règles et la formule du score).
-10. **Bonus si le temps reste** : export PDF de la déclaration, alertes d'échéance (les données sont déjà dans `echeances`), comparaison du score entre périodes (déjà dans `evolution_score`).
+Déjà fait (voir `LISEZMOI_etape9.md`) : authentification et rôles, liste et détail des anomalies avec dossier de preuve, justification et traitement, déclarations et boutons du workflow, historique des validations, dashboard Chart.js, écran de paramétrage des règles, journal d'audit.
+
+1. **Installer le lot de l'étape 9, lancer `php spark serve` et parcourir chaque écran dans le navigateur**, avec les trois comptes. **Le rendu visuel n'a pas pu être vérifié pendant le développement** : noter ce qui est mal aligné, illisible ou faux, et le corriger (les styles sont dans `app/Views/layout.php`, les écrans dans `app/Views/`).
+2. **Test croisé du moteur** : relire R3, R4 et R5, modifier des données pour voir si elles se déclenchent comme prévu, et signaler les écarts à Tsiory.
+3. **Saisie des bordereaux** : formulaire avec le PDF joint, rempli dans `documents` et `donnees_extraites` (champs `montant_ttc`, `date_document`, `nif_emetteur`), plus la saisie de l'historique des contrôles fiscaux (`controles_fiscaux_historique`). L'extraction automatique des PDF n'est pas prévue pour cette version : le dire dans le rapport comme un choix assumé.
+4. **Diagramme du workflow** et description du dashboard pour le rapport (Tsiory rédige le schéma de données, le catalogue de règles et la formule du score).
+5. **Répéter le scénario de soutenance à deux** (section 8) et noter les petits défauts.
+6. **Bonus si le temps reste** : export PDF de la déclaration, comparaison du score entre périodes (déjà dans `evolution_score`), limitation des tentatives de connexion.
 
 Le cœur du projet passe avant les bonus : si le temps manque, on sacrifie les bonus.
 
@@ -251,7 +262,8 @@ Répéter ce scénario à deux avant le jour J.
 - **R5** ne couvre que les paiements à des non-résidents ; l'impôt synthétique et l'IRSA reversé viennent après lecture du Code des procédures fiscales.
 - **Journal d'audit** : il détecte la modification ou la suppression d'une ligne, mais pas une reconstruction complète de la chaîne sans ancrage externe du dernier hash.
 - **Les déclarations générées** reprennent les écritures telles quelles, y compris celles qui portent des anomalies : c'est le rôle du workflow de les bloquer.
-- **Les URL JSON ne sont pas protégées** tant que l'authentification n'existe pas.
+- **Connexion** : pas de blocage après plusieurs échecs (à citer comme évolution) ; les échecs sont tracés dans le journal d'audit.
+- **L'apparence** de l'interface n'a pas été vérifiée dans un navigateur par le développeur : à contrôler avant la soutenance.
 
 ---
 
