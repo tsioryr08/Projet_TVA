@@ -33,6 +33,13 @@ $routes->group('', ['filter' => ['csrf', \App\Filters\AuthFilter::class]], stati
 
     $routes->get('audit', 'Audit::liste');
 
+    // Saisie (Olivier) : bordereaux et historique des contrôles
+    $routes->get('bordereaux', 'Bordereaux::liste');
+    $routes->post('bordereaux', 'Bordereaux::creer');
+    $routes->get('bordereaux/(:num)/fichier', 'Bordereaux::fichier/$1');
+    $routes->get('controles', 'Controles::liste');
+    $routes->post('controles', 'Controles::creer');
+
     // API JSON
     $routes->get('api/dashboard/(:num)/(:num)', 'DashboardApi::donnees/$1/$2');
     $routes->get('api/regles', 'ParametrageApi::lister');

@@ -1,0 +1,84 @@
+== Serveur
+  OK  page de connexion (http://localhost:8080)
+
+== Accès sans connexion
+  OK  page protégée redirige (302)
+  OK  API protégée en JSON 401 (401)
+
+== Pages (comptable)
+  OK  connexion comptable
+  OK  GET / (200)
+  OK  GET /anomalies (200)
+  OK  GET /anomalies/9 (200)
+  OK  GET /declarations (200)
+  OK  GET /bordereaux (200)
+  OK  GET /controles (200)
+  OK  GET /regles (302)
+  OK  GET /audit (302)
+  OK  API dashboard (200)
+  OK  score 85 dans l'API
+
+== Pages (fiscal)
+  OK  connexion fiscal
+  OK  GET / (200)
+  OK  GET /anomalies (200)
+  OK  GET /anomalies/9 (200)
+  OK  GET /declarations (200)
+  OK  GET /bordereaux (200)
+  OK  GET /controles (200)
+  OK  GET /regles (200)
+  OK  GET /audit (200)
+  OK  API dashboard (200)
+  OK  score 85 dans l'API
+
+== Pages (admin)
+  OK  connexion admin
+  OK  GET / (200)
+  OK  GET /anomalies (200)
+  OK  GET /anomalies/9 (200)
+  OK  GET /declarations (200)
+  OK  GET /bordereaux (200)
+  OK  GET /controles (200)
+  OK  GET /regles (200)
+  OK  GET /audit (200)
+  OK  API dashboard (200)
+  OK  score 85 dans l'API
+
+== Saisie des bordereaux (comptable)
+  OK  connexion comptable
+  OK  envoi valide : redirection (303)
+  OK  envoi valide : un document de plus (3)
+  OK  3 champs enregistrés (3)
+  OK  montant_ttc enregistré (650000.00)
+  OK  statut d'extraction (extrait)
+  OK  PDF présent sur le disque (writable/uploads/documents/1/2c78135a49db6b75b28a1c679fc47f2f.pdf)
+  OK  PDF servi par l'application
+  OK  même PDF (doublon) : rien enregistré (3)
+  OK  faux PDF : rien enregistré (3)
+  OK  montant abc : rien enregistré (3)
+  OK  date future : rien enregistré (3)
+  OK  NIF trop court : rien enregistré (3)
+  OK  date hors période : acceptée avec avertissement (4)
+
+== Saisie des bordereaux (responsable fiscal : refusée)
+  OK  connexion fiscal
+  OK  rôle responsable fiscal : rien enregistré (4)
+
+== Historique des contrôles (responsable fiscal)
+  OK  contrôle valide : redirection (303)
+  OK  contrôle valide : une ligne de plus (2)
+  OK  motif trop court : rien enregistré (2)
+  OK  date future : rien enregistré (2)
+  OK  montant négatif : rien enregistré (2)
+
+== Historique des contrôles (comptable : refusée)
+  OK  connexion comptable
+  OK  rôle comptable : rien enregistré (2)
+
+== Résultat : 59 OK, 0 KO
+Journal d'audit :
+
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-15 08:47:57 UTC+00:00
+
+Journal intact : 11 ligne(s) vérifiée(s).
+Pense à relancer ./demo_preparer.sh (le script a ajouté des données de test).

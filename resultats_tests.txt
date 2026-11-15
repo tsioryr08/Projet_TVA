@@ -1,0 +1,239 @@
+
+==================================================
+TEST R4-0 situation de départ
+ATTENDU : 1 anomalie : E003, 20 000 retenu au lieu de 25 700
+1
+1
+--- RÉSULTAT (anomalies R4) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:23:49 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id | Règle | Gravité | Statut  | Montant | Message                                                                |
++----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 21 | R4    | elevee  | ouverte | 5 700   | Bulletin E003 Rakoto : IRSA retenu de 20 000 Ar au lieu de 25 700 A... |
++----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R4-1 IRSA corrigé
+ATTENDU : 0 anomalie
+--- RÉSULTAT (anomalies R4) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:23:52 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 0 anomalie(s)
++----+-------+---------+--------+---------+---------+
+| Id | Règle | Gravité | Statut | Montant | Message |
++----+-------+---------+--------+---------+---------+
+
+==================================================
+TEST R4-2 écart de 100 (limite de tolérance)
+ATTENDU : 0 anomalie
+--- RÉSULTAT (anomalies R4) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:23:54 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 0 anomalie(s)
++----+-------+---------+--------+---------+---------+
+| Id | Règle | Gravité | Statut | Montant | Message |
++----+-------+---------+--------+---------+---------+
+
+==================================================
+TEST R4-3 écart de 101
+ATTENDU : 1 anomalie, écart 101
+--- RÉSULTAT (anomalies R4) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:23:57 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id | Règle | Gravité | Statut  | Montant | Message                                                                |
++----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 65 | R4    | elevee  | ouverte | 101     | Bulletin E003 Rakoto : IRSA retenu de 25 801 Ar au lieu de 25 700 A... |
++----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R4-4 base non arrondie 588 099
+ATTENDU : 0 anomalie (base arrondie à 588 000)
+--- RÉSULTAT (anomalies R4) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:23:59 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 0 anomalie(s)
++----+-------+---------+--------+---------+---------+
+| Id | Règle | Gravité | Statut | Montant | Message |
++----+-------+---------+--------+---------+---------+
+
+==================================================
+TEST R4-5 deux personnes à charge
+ATTENDU : 1 anomalie : attendu 21 700, écart 4 000
+--- RÉSULTAT (anomalies R4) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:02 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id | Règle | Gravité | Statut  | Montant | Message                                                                |
++----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 95 | R4    | elevee  | ouverte | 4 000   | Bulletin E003 Rakoto : IRSA retenu de 25 700 Ar au lieu de 21 700 A... |
++----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R4-6 base 300 000 et IRSA à 0
+ATTENDU : 1 anomalie : attendu 3 000 (minimum de perception)
+--- RÉSULTAT (anomalies R4) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:06 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id  | Règle | Gravité | Statut  | Montant | Message                                                                |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 111 | R4    | elevee  | ouverte | 3 000   | Bulletin E003 Rakoto : IRSA retenu de 0 Ar au lieu de 3 000 Ar pour... |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R4-7 base 4 500 000, IRSA au barème 2025
+ATTENDU : 1 anomalie : attendu 832 500 (barème 2026 NON VÉRIFIÉ), écart 25 000
+--- RÉSULTAT (anomalies R4) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:09 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id  | Règle | Gravité | Statut  | Montant | Message                                                                |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 127 | R4    | elevee  | ouverte | 21 000  | Bulletin E003 Rakoto : IRSA retenu de 807 500 Ar au lieu de 828 500... |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R3-0 situation de départ
+ATTENDU : 1 anomalie, écart 50 000
+1
+1
+--- RÉSULTAT (anomalies R3) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:12 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id  | Règle | Gravité | Statut  | Montant | Message                                                                |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 142 | R3    | moyenne | ouverte | 50 000  | Masse salariale comptabilisée (compte 641) de 1 750 000 Ar contre 1... |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R3-1 compta alignée sur les bulletins
+ATTENDU : 0 anomalie
+--- RÉSULTAT (anomalies R3) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:15 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 0 anomalie(s)
++----+-------+---------+--------+---------+---------+
+| Id | Règle | Gravité | Statut | Montant | Message |
++----+-------+---------+--------+---------+---------+
+
+==================================================
+TEST R3-2 écart de 1 000 (limite)
+ATTENDU : 0 anomalie
+--- RÉSULTAT (anomalies R3) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:18 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 0 anomalie(s)
++----+-------+---------+--------+---------+---------+
+| Id | Règle | Gravité | Statut | Montant | Message |
++----+-------+---------+--------+---------+---------+
+
+==================================================
+TEST R3-3 écart de 1 001
+ATTENDU : 1 anomalie, écart 1 001
+--- RÉSULTAT (anomalies R3) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:21 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id  | Règle | Gravité | Statut  | Montant | Message                                                                |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 186 | R3    | moyenne | ouverte | 1 001   | Masse salariale comptabilisée (compte 641) de 1 798 999 Ar contre 1... |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R3-4 bulletins à 0
+ATTENDU : 1 anomalie, écart 1 750 000
+--- RÉSULTAT (anomalies R3) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:24 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++-----+-------+---------+---------+-----------+------------------------------------------------------------------------+
+| Id  | Règle | Gravité | Statut  | Montant   | Message                                                                |
++-----+-------+---------+---------+-----------+------------------------------------------------------------------------+
+| 202 | R3    | moyenne | ouverte | 1 798 999 | Masse salariale comptabilisée (compte 641) de 1 798 999 Ar contre 0... |
++-----+-------+---------+---------+-----------+------------------------------------------------------------------------+
+
+==================================================
+TEST R5-0 situation de départ
+ATTENDU : 1 anomalie : retenue 100 000 au lieu de 200 000
+1
+1
+--- RÉSULTAT (anomalies R5) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:27 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id  | Règle | Gravité | Statut  | Montant | Message                                                                |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 220 | R5    | elevee  | ouverte | 100 000 | Écriture AC-004 : retenue à la source de 100 000 Ar au lieu de 200 ... |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R5-1 retenue correcte
+ATTENDU : 0 anomalie
+--- RÉSULTAT (anomalies R5) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:30 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 0 anomalie(s)
++----+-------+---------+--------+---------+---------+
+| Id | Règle | Gravité | Statut | Montant | Message |
++----+-------+---------+--------+---------+---------+
+
+==================================================
+TEST R5-2 aucune retenue
+ATTENDU : 1 anomalie : 0 au lieu de 200 000
+--- RÉSULTAT (anomalies R5) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:34 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id  | Règle | Gravité | Statut  | Montant | Message                                                                |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 250 | R5    | elevee  | ouverte | 200 000 | Écriture AC-004 : retenue à la source de 0 Ar au lieu de 200 000 Ar... |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R5-3 écart de 100 (limite)
+ATTENDU : 0 anomalie
+--- RÉSULTAT (anomalies R5) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:37 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 0 anomalie(s)
++----+-------+---------+--------+---------+---------+
+| Id | Règle | Gravité | Statut | Montant | Message |
++----+-------+---------+--------+---------+---------+
+
+==================================================
+TEST R5-4 écart de 101
+ATTENDU : 1 anomalie, écart 101
+--- RÉSULTAT (anomalies R5) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:40 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 1 anomalie(s)
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| Id  | Règle | Gravité | Statut  | Montant | Message                                                                |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+| 280 | R5    | elevee  | ouverte | 101     | Écriture AC-004 : retenue à la source de 199 899 Ar au lieu de 200 ... |
++-----+-------+---------+---------+---------+------------------------------------------------------------------------+
+
+==================================================
+TEST R5-5 tiers déclaré résident
+ATTENDU : 0 anomalie (LIMITE : les résidents ne sont pas contrôlés)
+--- RÉSULTAT (anomalies R5) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:43 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 0 anomalie(s)
++----+-------+---------+--------+---------+---------+
+| Id | Règle | Gravité | Statut | Montant | Message |
++----+-------+---------+--------+---------+---------+
+
+==================================================
+TEST R5-6 charge sur le compte 601 au lieu de 622
+ATTENDU : 0 anomalie (LIMITE : seul le compte 622 est contrôlé)
+--- RÉSULTAT (anomalies R5) :
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-11-14 18:24:46 UTC+00:00
+Société Démo Fiscalia SARL - période 10/2026 : 0 anomalie(s)
++----+-------+---------+--------+---------+---------+
+| Id | Règle | Gravité | Statut | Montant | Message |
++----+-------+---------+--------+---------+---------+
+
+==================================================
+Retour à la démo propre :
++----+----------------------------+-----------+------------+----------+--------+
+| Id | Société                    | Anomalies | Bloquantes | Score    | Niveau |
++----+----------------------------+-----------+------------+----------+--------+
+| 1  | Société Démo Fiscalia SARL | 7         | 2          | 73 / 100 | ELEVE  |
+| 2  | Société Modèle Claritas SA | 0         | 0          | 0 / 100  | FAIBLE |
++----+----------------------------+-----------+------------+----------+--------+
+
+Règles remises à leurs valeurs initiales. Journal d'audit conservé.

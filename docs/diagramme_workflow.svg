@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 640" width="1100" height="640" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f3a5f"/>
+    </marker>
+    <marker id="flo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d84315"/>
+    </marker>
+  </defs>
+  <rect width="1100" height="640" fill="#ffffff"/>
+  <text x="550" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#1f3a5f">Workflow de validation d'une déclaration (TVA, IRSA, retenues)</text>
+
+  <!-- États -->
+  <g font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle">
+    <rect x="30"  y="150" width="150" height="64" rx="12" fill="#6b7684"/><text x="105" y="188">brouillon</text>
+    <rect x="260" y="150" width="150" height="64" rx="12" fill="#1565c0"/><text x="335" y="188">à valider</text>
+    <rect x="490" y="150" width="150" height="64" rx="12" fill="#2e7d32"/><text x="565" y="188">validée</text>
+    <rect x="720" y="150" width="150" height="64" rx="12" fill="#2e7d32"/><text x="795" y="188">déposée</text>
+    <rect x="920" y="150" width="150" height="64" rx="12" fill="#6b7684"/><text x="995" y="188">archivée</text>
+    <rect x="260" y="330" width="150" height="64" rx="12" fill="#d84315"/><text x="335" y="368">à corriger</text>
+  </g>
+
+  <!-- Flèches principales -->
+  <g stroke="#1f3a5f" stroke-width="2.5" fill="none" marker-end="url(#fl)">
+    <line x1="180" y1="182" x2="258" y2="182"/>
+    <line x1="410" y1="182" x2="488" y2="182"/>
+    <line x1="640" y1="182" x2="718" y2="182"/>
+    <line x1="870" y1="182" x2="918" y2="182"/>
+  </g>
+  <g font-size="13" fill="#1f3a5f" text-anchor="middle" font-weight="600">
+    <text x="219" y="142">soumettre</text>
+    <text x="449" y="142">valider</text>
+    <text x="679" y="142">déposer</text>
+    <text x="894" y="142">archiver</text>
+  </g>
+  <g font-size="12" fill="#5b6878" text-anchor="middle">
+    <text x="219" y="236">comptable</text>
+    <text x="449" y="236">resp. fiscal</text>
+    <text x="679" y="236">resp. fiscal</text>
+    <text x="894" y="236">resp. fiscal</text>
+  </g>
+
+  <!-- Boucle de correction -->
+  <g stroke="#d84315" stroke-width="2.5" fill="none">
+    <line x1="305" y1="214" x2="305" y2="328" marker-end="url(#flo)"/>
+    <line x1="365" y1="328" x2="365" y2="216" marker-end="url(#flo)"/>
+  </g>
+  <g font-size="13" fill="#d84315" font-weight="600">
+    <text x="295" y="262" text-anchor="end">renvoyer</text>
+    <text x="295" y="280" text-anchor="end" font-size="12" font-weight="400">commentaire obligatoire</text>
+    <text x="375" y="262">soumettre</text>
+    <text x="375" y="280" font-size="12" font-weight="400">après correction</text>
+  </g>
+
+  <!-- Entrée -->
+  <circle cx="30" cy="100" r="8" fill="#1f3a5f"/>
+  <path d="M34,106 L80,146" stroke="#1f3a5f" stroke-width="2" fill="none" marker-end="url(#fl)"/>
+  <text x="48" y="96" font-size="12" fill="#5b6878">génération (comptable)</text>
+
+  <!-- Conditions -->
+  <rect x="30" y="440" width="1040" height="180" rx="10" fill="#f3f5f9" stroke="#dbe1ea"/>
+  <text x="50" y="470" font-size="15" font-weight="700" fill="#1f3a5f">Conditions vérifiées par le service : statut de départ, rôle, anomalies bloquantes, commentaire ou référence</text>
+  <g font-size="14" fill="#1d2733">
+    <text x="50" y="500"><tspan font-weight="700">soumettre</tspan> : comptable ou admin ; aucune anomalie bloquante ouverte.</text>
+    <text x="50" y="526"><tspan font-weight="700">valider</tspan> : responsable fiscal ou admin ; aucune anomalie bloquante ouverte ; la personne qui a soumis ne peut pas valider (séparation des tâches).</text>
+    <text x="50" y="552"><tspan font-weight="700">renvoyer</tspan> : responsable fiscal ou admin ; commentaire obligatoire.</text>
+    <text x="50" y="578"><tspan font-weight="700">déposer</tspan> : responsable fiscal ou admin ; référence de virement obligatoire.   <tspan font-weight="700">archiver</tspan> : responsable fiscal ou admin.</text>
+    <text x="50" y="604" fill="#5b6878" font-size="13">Chaque transition est inscrite dans l'historique des validations (étapes humaines) et dans le journal d'audit à chaîne de hash.</text>
+  </g>
+</svg>
