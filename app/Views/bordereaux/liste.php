@@ -6,7 +6,8 @@
 <?php if ($peutSaisir && ! empty($ctx['periode'])): ?>
 <div class="carte">
   <h2>Saisir un bordereau</h2>
-  <p class="mini">Joindre le PDF, puis recopier les trois champs lus sur le document. L'extraction automatique du texte des PDF n'est pas prévue dans cette version (choix assumé, prévue en évolution).</p>
+  <p class="mini">Choisir le PDF : le montant, la date et le NIF sont lus automatiquement et pré-remplis. Vérifiez-les (et corrigez si besoin) avant d'enregistrer. Si le PDF n'est pas lisible, saisissez les champs à la main.</p>
+  <p id="b-lecture" class="mini" role="status" aria-live="polite"></p>
   <form method="post" action="<?= site_url('bordereaux') ?>" enctype="multipart/form-data">
     <?= csrf_field() ?>
     <div class="grille g4">
@@ -21,6 +22,31 @@
     </div>
     <p style="margin:14px 0 0"><button class="btn" type="submit">Enregistrer le bordereau</button></p>
   </form>
+  <script>
+  (function () {
+    var form = document.querySelector('form[action$="/bordereaux"]'), pdf = document.getElementById('b-pdf'), msg = document.getElementById('b-lecture');
+    if (!form || !pdf || !window.fetch || !window.FormData) { return; }
+    pdf.addEventListener('change', function () {
+      if (!pdf.files.length) { return; }
+      var tokenInput = form.querySelector('input[type=hidden][name="<?= csrf_token() ?>"]');
+      var fd = new FormData();
+      fd.append('fichier', pdf.files[0]);
+      if (tokenInput) { fd.append(tokenInput.name, tokenInput.value); }
+      msg.textContent = 'Lecture du PDF...';
+      fetch('<?= site_url('bordereaux/lire') ?>', { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) { return r.json().catch(function () { return { message: 'Lecture impossible : saisissez les champs à la main.' }; }); })
+        .then(function (j) {
+          if (j.token && tokenInput) { tokenInput.value = j.token; }
+          [['b-montant', j.montant], ['b-date', j.date], ['b-nif', j.nif]].forEach(function (c) {
+            var champ = document.getElementById(c[0]);
+            if (champ && c[1]) { champ.value = c[1]; }
+          });
+          msg.textContent = j.message || '';
+        })
+        .catch(function () { msg.textContent = 'Lecture impossible : saisissez les champs à la main.'; });
+    });
+  })();
+  </script>
 </div>
 <?php elseif (! $peutSaisir): ?>
 <div class="flash info">La saisie des bordereaux est réservée au comptable. Vous pouvez consulter la liste.</div>

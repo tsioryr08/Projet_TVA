@@ -57,7 +57,7 @@ a{color:var(--bleu)}
 .bandeau-bloque{background:#ffebee;border:1px solid #ef9a9a;color:#b71c1c;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-weight:600}
 .bandeau-ok{background:#e8f5e9;border:1px solid #a5d6a7;color:#1b5e20;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-weight:600}
 label{display:block;font-size:13px;color:var(--doux);margin:8px 0 3px}
-input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--bord);border-radius:6px;font:inherit;background:#fff}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],input[type=file],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--bord);border-radius:6px;font:inherit;background:#fff}
 textarea{min-height:64px;resize:vertical}
 .btn{display:inline-block;padding:8px 16px;border:0;border-radius:6px;background:var(--marine);color:#fff;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
 .btn:hover{background:#2a4d7c}
@@ -87,7 +87,10 @@ code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
   <nav>
     <a href="<?= site_url('tableau') ?>"<?= $tableau ? ' class="actif"' : '' ?>>Tableau de bord</a>
     <a href="<?= site_url('anomalies') ?>"<?= $actif('anomalies') ?>>Anomalies</a>
+    <a href="<?= site_url('simulateur') ?>"<?= $actif('simulateur') ?>>Simulateur</a>
     <a href="<?= site_url('declarations') ?>"<?= $actif('declarations') ?>>Déclarations</a>
+    <a href="<?= site_url('bordereaux') ?>"<?= $actif('bordereaux') ?>>Bordereaux</a>
+    <a href="<?= site_url('controles') ?>"<?= $actif('controles') ?>>Contrôles</a>
     <?php if ($peutGerer): ?>
     <a href="<?= site_url('regles') ?>"<?= $actif('regles') ?>>Règles</a>
     <a href="<?= site_url('audit') ?>"<?= $actif('audit') ?>>Audit</a>

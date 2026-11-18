@@ -1,0 +1,48 @@
+./demo_preparer.sh figer
+tjrs commencer avec comptable 
+
+
+Étape 1 : la prédiction
+Menu Simulateur (page rechargée par son lien).
+Mets Corriger sur OD-001 et sur OD-002, rien d’autre, puis Simuler.
+Note le score projeté. Calcul attendu : R6 pèse 18 points au total (2 bloquantes × 3 × 3 de multiplicateur... soit 6 points × 3), donc 85 → 67. Le message doit aussi dire que la déclaration pourrait être soumise (plus de bloquante).
+Étape 2 : la vraie correction
+Terminal : MYSQL=/opt/lampp/bin/mysql ./demo_corriger_od001.sh, puis MYSQL=/opt/lampp/bin/mysql ./corriger_od002.sh.
+Application, Anomalies : ouvre OD-001, Marquer corrigée. Ouvre OD-002, Marquer corrigée.
+Regarde le score affiché : il doit être 67, comme prédit.
+
+
+od-001 dans comptable ,corriger en prems 
+justification apres sh dans admin ou fiscal 
+pour 002 :MYSQL=/opt/lampp/bin/mysql ./corriger_od002.sh
+corriger dans comptable
+soumission tva ds comptable ->a valider 
+puis aller dans fiscal ou admin 
+tu peux valider , sans txt-> refus 
+apres avoir valider tu deposes
+et apres archives
+apres dans admin on peut changer le pt mais en apercu 
+pas de nouvelles lignes pour apercu
+ouvrir l autre societe
+
+
+la bourse :endroit qui englobe plusieurs actifs dans plusieurs pays
+bourse:tu peux placer de l argent pour investir ou bien pour
+ faire du trading : achat puis vente
+
+ ETF:fonds d'investissement coté en bourse qui reproduit l'évolution d'un 
+ indice 
+ boursier, comme le CAC 40 ou le S&P 500
+ CAC 40 ou le S&P 500:indice boursier
+ 40: 40 grandes entreprises en France comme TotalEnergies
+ 500:aux usa comme Apple,microsoft
+ 2 facons d investir la bourse : 
+    passif :
+• Vous achetez l'ensemble du marché en une seule 
+fois et vous laissez votre argent travailler sur le long terme.
+exple:Vous achetez un ETF S&P 500. Si les 500 plus grandes entreprises 
+américaines 
+gagnent en moyenne 8 % sur l'année, votre placement gagne aussi 8 %
+    actif:
+•  Vous (ou un professionnel que vous payez) choisissez précisément quelles 
+entreprises acheteret quand les revendre, dans l'espoir de faire mieux que la moyenne.

@@ -46,11 +46,30 @@ class Bordereaux extends AppController
             return redirect()->to(site_url('bordereaux'))->withInput()->with('erreur', $e->getMessage());
         }
         $redirection = redirect()->to(site_url('bordereaux'))->with('succes', 'Bordereau enregistré (document n° ' . $r['id'] . ').');
-        if ($r['avertissement'] !== null) {
-            $redirection->with('info', $r['avertissement']);
+        $infos = array_filter([$r['avertissement'], $r['ecart']]);
+        if ($infos !== []) {
+            $redirection->with('info', implode(' ', $infos));
         }
 
         return $redirection;
+    }
+
+    /** Lit un PDF choisi dans le formulaire et renvoie les valeurs trouvées (JSON). Rien n'est enregistré. */
+    public function lire()
+    {
+        if ($refus = $this->exiger(self::ROLES_SAISIE)) {
+            return $refus;
+        }
+        try {
+            $r = (new BordereauService())->lire($this->request->getFile('fichier'));
+        } catch (SaisieException $e) {
+            return $this->response->setStatusCode(400)->setJSON(['message' => $e->getMessage(), 'token' => csrf_hash()]);
+        }
+        $message = $r['trouves'] === 0
+            ? 'Aucune donnée lisible dans ce PDF : saisissez les champs à la main.'
+            : sprintf('Lu depuis le PDF : %d champ%s sur 3. Vérifiez avant d\'enregistrer.', $r['trouves'], $r['trouves'] > 1 ? 's' : '');
+
+        return $this->response->setJSON(['montant' => $r['montant'], 'date' => $r['date'], 'nif' => $r['nif'], 'trouves' => $r['trouves'], 'message' => $message, 'token' => csrf_hash()]);
     }
 
     /** Affiche le PDF joint (stocké hors de public/, donc servi par ici, derrière la connexion). */

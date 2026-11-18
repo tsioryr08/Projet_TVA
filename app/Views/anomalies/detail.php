@@ -34,6 +34,14 @@
   <?php endif; ?>
 </div>
 
+<?php if (! empty($rectifiable)): ?>
+<div class="carte">
+  <h2>Corriger les données</h2>
+  <p class="mini" style="margin-top:0">Rectifiez ici l'écriture (ou le bulletin) à l'origine de l'anomalie, puis revenez cliquer sur « Marquer corrigée ». Chaque modification est tracée dans le journal d'audit.</p>
+  <p style="margin:10px 0 0"><a class="btn" href="<?= site_url('anomalies/' . (int) $a['id'] . '/rectifier') ?>">Rectifier les données</a></p>
+</div>
+<?php endif; ?>
+
 <div class="carte">
   <h2>Traiter l'anomalie</h2>
   <div class="ligne-actions">

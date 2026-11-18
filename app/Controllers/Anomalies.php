@@ -40,7 +40,13 @@ class Anomalies extends AppController
             return redirect()->to(site_url('anomalies'))->with('erreur', $e->getMessage());
         }
 
-        return $this->vue('anomalies/detail', $fiche + ['actions' => $actions]);
+        $rectifiable = false;
+        if (in_array($this->utilisateur['role'], ['comptable', 'admin'], true)) {
+            $c           = (new \App\Libraries\Anomalies\RectificationService())->cible($id);
+            $rectifiable = $c['type'] !== null && $c['modifiable'];
+        }
+
+        return $this->vue('anomalies/detail', $fiche + ['actions' => $actions, 'rectifiable' => $rectifiable]);
     }
 
     public function traiter(int $id)

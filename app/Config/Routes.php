@@ -23,6 +23,10 @@ $routes->group('', ['filter' => ['csrf', \App\Filters\AuthFilter::class]], stati
     $routes->get('anomalies/(:num)', 'Anomalies::detail/$1');
     $routes->post('anomalies/(:num)/traiter', 'Anomalies::traiter/$1');
 
+    // Simulateur « et si je corrige ? » : calcul seul, aucune écriture en base
+    $routes->get('simulateur', 'Simulateur::index');
+    $routes->post('simulateur', 'Simulateur::simuler');
+
     $routes->get('declarations', 'Declarations::liste');
     $routes->post('declarations/generer', 'Declarations::generer');
     $routes->get('declarations/(:num)', 'Declarations::detail/$1');
@@ -36,6 +40,7 @@ $routes->group('', ['filter' => ['csrf', \App\Filters\AuthFilter::class]], stati
     // Saisie (Olivier) : bordereaux et historique des contrôles
     $routes->get('bordereaux', 'Bordereaux::liste');
     $routes->post('bordereaux', 'Bordereaux::creer');
+    $routes->post('bordereaux/lire', 'Bordereaux::lire');
     $routes->get('bordereaux/(:num)/fichier', 'Bordereaux::fichier/$1');
     $routes->get('controles', 'Controles::liste');
     $routes->post('controles', 'Controles::creer');
@@ -49,4 +54,7 @@ $routes->group('', ['filter' => ['csrf', \App\Filters\AuthFilter::class]], stati
     $routes->get('api/anomalies/(:num)', 'AnomaliesApi::detail/$1');
     $routes->get('api/anomalies/(:num)/actions', 'AnomaliesApi::actions/$1');
     $routes->post('api/anomalies/(:num)/traiter', 'AnomaliesApi::traiter/$1');
+    $routes->get('anomalies/(:num)/rectifier', 'Rectifier::formulaire/$1');
+    $routes->post('anomalies/(:num)/rectifier', 'Rectifier::enregistrer/$1');
+    $routes->post('anomalies/(:num)/rectifier/supprimer', 'Rectifier::supprimer/$1');
 });

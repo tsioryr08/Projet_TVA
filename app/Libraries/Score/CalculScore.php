@@ -14,9 +14,14 @@ use Config\Database;
 class CalculScore
 {
     /**
+     * Calcule le score de risque d'une société sur une période.
+     *
+     * @param array<int|string,string> $surcharges Clé = id d'anomalie, valeur = statut simulé (remplace le statut en base).
+     *        Permet de simuler l'effet d'un changement de statut sans écrire en base. Vide = comportement normal.
+     *
      * @return array{score:float,niveau:string,facteur_historique:float,detail:array<string,mixed>,id:?int}
      */
-    public function calculer(int $societeId, int $periodeId, bool $enregistrer = true): array
+    public function calculer(int $societeId, int $periodeId, bool $enregistrer = true, array $surcharges = []): array
     {
         /** @var \Config\Score $cfg */
         $cfg = config('Score');
@@ -33,14 +38,16 @@ class CalculScore
         $regles = [];
         $bloquantes = 0;
         foreach ($anomalies as $a) {
-            $points = ($cfg->points[$a['severite']] ?? 0) * (float) $a['poids'] * ($cfg->coefficientStatut[$a['statut']] ?? 0);
+            // En mode simulation, le statut peut être remplacé par une surcharge.
+            $statut = $surcharges[$a['id']] ?? $a['statut'];
+            $points = ($cfg->points[$a['severite']] ?? 0) * (float) $a['poids'] * ($cfg->coefficientStatut[$statut] ?? 0);
 
             $code = $a['regle_code'];
             $regles[$code] ??= ['code' => $code, 'intitule' => $a['intitule'], 'poids' => (float) $a['poids'], 'nb_anomalies' => 0, 'points' => 0.0];
             $regles[$code]['nb_anomalies']++;
             $regles[$code]['points'] += $points;
 
-            if ($a['severite'] === 'bloquante' && $a['statut'] === 'ouverte') {
+            if ($a['severite'] === 'bloquante' && $statut === 'ouverte') {
                 $bloquantes++;
             }
         }

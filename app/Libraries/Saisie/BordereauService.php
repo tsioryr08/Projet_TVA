@@ -11,7 +11,9 @@ use Config\Database;
 /**
  * Saisie assistée des bordereaux : le PDF est joint, et trois champs lus à la main sont enregistrés
  * (montant_ttc, date_document, nif_emetteur) dans documents + donnees_extraites.
- * Pas d'extraction automatique du PDF : choix assumé pour cette version (confiance = 100, saisie humaine).
+ * Lecture assistée : lire() propose des valeurs tirées du PDF pour pré-remplir le formulaire (rien n'est enregistré) ;
+ * la personne vérifie et corrige. À l'enregistrement, chaque champ garde une confiance : 95 s'il est identique à ce que
+ * lit le PDF, 60 s'il diffère, 100 (saisie humaine) si le PDF n'a rien donné pour ce champ.
  *
  * Les fichiers sont rangés hors de public/ : writable/uploads/documents/{société}/{nom aléatoire}.pdf
  */
@@ -24,7 +26,7 @@ class BordereauService
     /**
      * @param array<string,mixed> $saisie type_document, tiers_id, montant_ttc, date_document, nif_emetteur
      *
-     * @return array{id:int,avertissement:?string}
+     * @return array{id:int,avertissement:?string,ecart:?string}
      */
     public function creer(int $societeId, ?int $periodeId, array $saisie, ?UploadedFile $fichier, int $utilisateurId): array
     {
@@ -50,6 +52,24 @@ class BordereauService
             throw new SaisieException('Ce PDF a déjà été enregistré pour cette société (même contenu).');
         }
 
+        // ---- Comparaison avec ce que lit le PDF (avant le déplacement : le fichier temporaire disparaît ensuite) ----
+        $lu        = (new ExtracteurBordereau())->extraire($fichier->getTempName());
+        $saisis    = ['montant_ttc' => $montant, 'date_document' => $date, 'nif_emetteur' => $nif];
+        $dansPdf   = ['montant_ttc' => $lu['montant'], 'date_document' => $lu['date'], 'nif_emetteur' => $lu['nif']];
+        $confiance = [];
+        $ecarts    = [];
+        foreach ($saisis as $champ => $valeur) {
+            if ($dansPdf[$champ] === null) {
+                $confiance[$champ] = 100;
+            } elseif ($dansPdf[$champ] === $valeur) { // déjà normalisés par Valeurs (ex. 1250000.00)
+                $confiance[$champ] = 95;
+            } else {
+                $confiance[$champ] = 60;
+                $ecarts[]          = ['montant_ttc' => 'montant', 'date_document' => 'date', 'nif_emetteur' => 'NIF'][$champ];
+            }
+        }
+        $ecart = $ecarts === [] ? null : 'Valeur saisie différente du PDF (' . implode(', ', $ecarts) . ') : à faire vérifier.';
+
         // ---- Rangement du fichier ----------------------------------------------------------------
         $dossier = ROOTPATH . self::DOSSIER . '/' . $societeId;
         if (! is_dir($dossier) && ! mkdir($dossier, 0775, true) && ! is_dir($dossier)) {
@@ -69,8 +89,8 @@ class BordereauService
         ]);
         $docId   = (int) $docs->getInsertID();
         $donnees = new DonneeExtraiteModel();
-        foreach (['montant_ttc' => $montant, 'date_document' => $date, 'nif_emetteur' => $nif] as $champ => $valeur) {
-            $donnees->insert(['document_id' => $docId, 'champ' => $champ, 'valeur' => $valeur, 'confiance' => 100]);
+        foreach ($saisis as $champ => $valeur) {
+            $donnees->insert(['document_id' => $docId, 'champ' => $champ, 'valeur' => $valeur, 'confiance' => $confiance[$champ]]);
         }
         $db->transComplete();
 
@@ -82,9 +102,22 @@ class BordereauService
 
         (new AuditService())->journaliser($utilisateurId, 'saisie_bordereau', 'documents', $docId, null, [
             'type_document' => $type, 'montant_ttc' => $montant, 'date_document' => $date, 'nif_emetteur' => $nif, 'hash' => substr($hash, 0, 16),
+            'lecture_pdf' => $lu['trouves'] . '/3', 'ecart_pdf' => $ecarts === [] ? null : implode(',', $ecarts),
         ]);
 
-        return ['id' => $docId, 'avertissement' => $this->avertissementPeriode($periodeId, $date)];
+        return ['id' => $docId, 'avertissement' => $this->avertissementPeriode($periodeId, $date), 'ecart' => $ecart];
+    }
+
+    /**
+     * Lit le PDF et propose des valeurs pour pré-remplir le formulaire. N'enregistre rien et ne journalise rien.
+     *
+     * @return array{montant:?string,date:?string,nif:?string,trouves:int,texte_lu:bool,source:string}
+     */
+    public function lire(?UploadedFile $fichier): array
+    {
+        $this->controlerFichier($fichier);
+
+        return (new ExtracteurBordereau())->extraire($fichier->getTempName());
     }
 
     /**

@@ -6,7 +6,8 @@
   $sc  = $d['score'];
   $k   = $d['kpi'];
   $det = $sc['detail'];
-  $couleurs = ['faible' => '#2e7d32', 'moyen' => '#b26a00', 'eleve' => '#d84315', 'critique' => '#b71c1c'];
+  /* Palette sémantique unifiée : sauge (faible), sable (moyen), ocre (élevé), terracotta/brique (critique) */
+  $couleurs = ['faible' => '#7a9e7e', 'moyen' => '#e8dcc8', 'eleve' => '#c48a3a', 'critique' => '#c45a3a'];
 ?>
 <h1>Tableau de bord de risque</h1>
 <p class="sous"><?= esc($d['societe']['raison_sociale']) ?> - période <?= esc($d['periode']['libelle']) ?> (<?= esc(ui_libelle($d['periode']['statut'])) ?>)</p>
@@ -28,7 +29,7 @@
   <div class="carte">
     <h2>Score de risque</h2>
     <div class="jauge"><canvas id="jauge" height="170"></canvas>
-      <div class="centre"><b style="color:<?= $couleurs[$sc['niveau']] ?? '#1f3a5f' ?>"><?= esc(ui_nombre($sc['valeur'])) ?></b><?= ui_badge('niveau', $sc['niveau']) ?></div>
+      <div class="centre"><b style="color:<?= $couleurs[$sc['niveau']] ?? '#5d4e43' ?>"><?= esc(ui_nombre($sc['valeur'])) ?></b><?= ui_badge('niveau', $sc['niveau']) ?></div>
     </div>
     <?php if ($sc['variation'] !== null): ?>
       <p class="mini" style="text-align:center;margin:10px 0 0">Par rapport à <?= esc($sc['precedent']['periode']) ?> : <b><?= $sc['variation'] > 0 ? '+' : '' ?><?= esc(ui_nombre($sc['variation'])) ?></b> point(s)</p>
@@ -69,7 +70,7 @@
     <?php foreach ($h['regles'] as $i => $code): ?>
       <tr><td><b><?= esc($code) ?></b></td>
       <?php foreach ($h['valeurs'][$i] as $v): $a = $v === 0 ? 0 : 0.18 + 0.72 * ($v / $max); ?>
-        <td class="c" style="background:rgba(183,28,28,<?= round($a, 2) ?>);color:<?= $a > 0.5 ? '#fff' : 'inherit' ?>"><?= (int) $v ?></td>
+        <td class="c" style="background:rgba(196,90,58,<?= round($a, 2) ?>);color:<?= $a > 0.5 ? '#fff' : 'inherit' ?>"><?= (int) $v ?></td>
       <?php endforeach; ?></tr>
     <?php endforeach; ?>
     </tbody>
@@ -112,28 +113,82 @@
   }
   var g = <?= json_encode($d['graphiques'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
   var score = <?= json_encode((float) $sc['valeur']) ?>;
-  var couleurNiveau = <?= json_encode($couleurs[$sc['niveau']] ?? '#1f3a5f') ?>;
-  var couleursGravite = { info: '#6b7684', moyenne: '#1565c0', elevee: '#d84315', bloquante: '#b71c1c' };
+  var couleurNiveau = <?= json_encode($couleurs[$sc['niveau']] ?? '#5d4e43') ?>;
 
+  /* Palette sémantique unifiée pour Chart.js (identique au CSS) */
+  var palette = {
+    sauge: '#7a9e7e',       /* faible / succès / conforme */
+    saugeClair: '#eef3ee',
+    sable: '#e8dcc8',       /* moyen / neutre / information */
+    sableClair: '#f9f5ef',
+    ocre: '#c48a3a',        /* élevé / attention / à surveiller */
+    ocreClair: '#faf3e8',
+    terracotta: '#d47855',  /* critique / erreur / bloquante */
+    brique: '#c45a3a',
+    briqueClair: '#f5ebe8',
+    brun: '#5d4e43',        /* texte principal */
+    brunDoux: '#8d7b6f',    /* texte secondaire / axes */
+    grisChaud: '#a09388'    /* texte faible / grilles */
+  };
+
+  var couleursGravite = {
+    info: palette.sauge,        /* conforme / info -> sauge */
+    moyenne: palette.sable,     /* neutre / moyen -> sable */
+    elevee: palette.ocre,       /* attention / élevé -> ocre */
+    bloquante: palette.brique   /* critique / bloquante -> brique */
+  };
+
+  /* Fonction pour générer une couleur RGBA à partir d'un hex */
+  function hexToRgba(hex, alpha) {
+    var r = parseInt(hex.slice(1, 3), 16);
+    var g = parseInt(hex.slice(3, 5), 16);
+    var b = parseInt(hex.slice(5, 7), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+  }
+
+  /* 1. Jauge de score (doughnut) */
   new Chart(document.getElementById('jauge'), {
     type: 'doughnut',
-    data: { datasets: [{ data: [score, 100 - score], backgroundColor: [couleurNiveau, '#e6eaf0'], borderWidth: 0 }] },
+    data: { datasets: [{ data: [score, 100 - score], backgroundColor: [couleurNiveau, palette.sableClair], borderWidth: 0 }] },
     options: { rotation: -90, circumference: 180, cutout: '72%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
   });
+
+  /* 2. Évolution du score (line) */
   new Chart(document.getElementById('evolution'), {
     type: 'line',
-    data: { labels: g.evolution_score.labels, datasets: [{ label: 'Score de risque', data: g.evolution_score.data, borderColor: '#1f3a5f', backgroundColor: 'rgba(31,58,95,.12)', fill: true, tension: .25, pointRadius: 5 }] },
-    options: { scales: { y: { min: 0, max: 100 } }, plugins: { legend: { display: false } } }
+    data: { labels: g.evolution_score.labels, datasets: [{ label: 'Score de risque', data: g.evolution_score.data, borderColor: palette.brique, backgroundColor: hexToRgba(palette.terracotta, 0.12), fill: true, tension: .25, pointRadius: 5, pointBackgroundColor: palette.brique, pointBorderColor: '#fff' }] },
+    options: {
+      scales: {
+        y: { min: 0, max: 100, grid: { color: hexToRgba(palette.grisChaud, 0.15) }, ticks: { color: palette.brunDoux, font: { size: 11 } } },
+        x: { grid: { display: false }, ticks: { color: palette.brunDoux, font: { size: 11 } } }
+      },
+      plugins: { legend: { display: false } }
+    }
   });
+
+  /* 3. Anomalies par règle (bar) */
   new Chart(document.getElementById('regles'), {
     type: 'bar',
-    data: { labels: g.par_regle.labels, datasets: [{ label: 'Anomalies', data: g.par_regle.data, backgroundColor: '#1f3a5f' }] },
-    options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+    data: { labels: g.par_regle.labels, datasets: [{ label: 'Anomalies', data: g.par_regle.data, backgroundColor: palette.terracotta, borderColor: palette.brique, borderWidth: 1, borderRadius: 4 }] },
+    options: {
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0, color: palette.brunDoux, font: { size: 11 } }, grid: { color: hexToRgba(palette.grisChaud, 0.15) } },
+        x: { ticks: { color: palette.brunDoux, font: { size: 11 } }, grid: { display: false } }
+      },
+      plugins: { legend: { display: false } }
+    }
   });
+
+  /* 4. Anomalies par gravité (doughnut) */
   new Chart(document.getElementById('gravite'), {
     type: 'doughnut',
-    data: { labels: g.par_gravite.labels, datasets: [{ data: g.par_gravite.data, backgroundColor: g.par_gravite.labels.map(function (l) { return couleursGravite[l]; }) }] },
-    options: { plugins: { legend: { position: 'bottom' } } }
+    data: { labels: g.par_gravite.labels, datasets: [{ data: g.par_gravite.data, backgroundColor: g.par_gravite.labels.map(function (l) { return couleursGravite[l]; }), borderColor: '#fff', borderWidth: 2 }] },
+    options: {
+      plugins: {
+        legend: { position: 'bottom', labels: { color: palette.brunDoux, font: { size: 12 }, padding: 16, usePointStyle: true } },
+        tooltip: { backgroundColor: palette.brun, titleColor: '#fff', bodyColor: '#fff', borderColor: palette.brique, borderWidth: 1 }
+      }
+    }
   });
 })();
 </script>
